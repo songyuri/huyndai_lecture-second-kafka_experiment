@@ -1,2 +1,2 @@
-# huyndai_lecture-second-kafka_experiment
+# huyndai_lecture_second_kafka_experiment
 Kafka_experiment
