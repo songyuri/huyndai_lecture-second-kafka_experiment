@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# kafka_crash_recovery_demo.py
 import argparse, time, threading, json, os, random, sys
 
 # ---------- 공통: "작업 1건"은 sleep으로 흉내 ----------
