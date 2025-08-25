@@ -12,30 +12,21 @@ def crash_single(n, work_ms, crash_after):
     t0 = time.time()
     processed = 0
     try:
-        for i in range(n):
-            do_work_ms(work_ms)
-            processed += 1
-            if (crash_after is not None) and (time.time() - t0 >= crash_after):
-                print(f"[single-crash] CRASH NOW at processed={processed}")
-                os._exit(1)  # 강제 종료(진행도 저장 X)
-        print(f"[single-crash] finished. processed={processed}/{n}")
+        
     except KeyboardInterrupt:
         print("[single-crash] interrupted")
 
 # ---------- [B] KAFKA: 크래시 데모 (중간 종료 후 재시작 → 이어서 처리) ----------
 def kafka_crash_produce(n, bootstrap, topic, partitions=2):
     try:
-        from kafka import KafkaProducer # 실행, 설치가 안돼있으면 exception 발생
-        from kafka.admin import KafkaAdminClient, NewTopic # 실행, 설치가 안돼있으면 exception 발생
-        from kafka.errors import TopicAlreadyExistsError # 실행, 설치가 안돼있으면 exception 발생
+        
     except Exception:
         sys.exit("pip install kafka-python 해주세요.")
     
     # 토픽 생성
     try:
-        admin = KafkaAdminClient(bootstrap_servers=bootstrap, client_id="crash-demo") # Kafka 서버(localhost:9092)에 관리자로 연결
         try:
-            admin.create_topics([NewTopic(name=topic, num_partitions=partitions, replication_factor=1)])
+            
             print(f"[kafka] created topic '{topic}' partitions={partitions}") # 파티션은 기본 2로 설정
         except TopicAlreadyExistsError:
             print(f"[kafka] topic '{topic}' exists. (ok)")
@@ -46,11 +37,7 @@ def kafka_crash_produce(n, bootstrap, topic, partitions=2):
     
     # 전송(균등 분배)
     # 변환 방법: 파이썬 데이터 -> JSON 문자열 -> 바이트 데이터
-    prod = KafkaProducer(bootstrap_servers=bootstrap, value_serializer=lambda v: json.dumps(v).encode("utf-8"))
-    for i in range(n):
-        prod.send(topic, {"i": i}, partition=i % partitions) # 파티션 0, 1, 2, 3에 분배
-    prod.flush()
-    print(f"[kafka] produced {n} messages to '{topic}'")
+    
 
 def kafka_crash_consume(bootstrap, topic, group_id, work_ms, crash_after=None):
     from kafka import KafkaConsumer
@@ -59,13 +46,7 @@ def kafka_crash_consume(bootstrap, topic, group_id, work_ms, crash_after=None):
     print(f"[kafka-crash] consuming topic={topic}, group={group_id}, work_ms={work_ms}ms, crash_after={crash_after}")
 
     consumer = KafkaConsumer(
-        topic,
-        bootstrap_servers=bootstrap,
-        group_id=group_id,
-        auto_offset_reset="earliest",
-        enable_auto_commit=False,      # 처리 후에만 커밋
-        value_deserializer=lambda m: json.loads(m.decode("utf-8")),
-        max_poll_records=10,           # ★ 한 번에 배치 10개 가져옴
+        
     )
 
     t0 = time.time()
@@ -75,7 +56,6 @@ def kafka_crash_consume(bootstrap, topic, group_id, work_ms, crash_after=None):
     try:
         while True:
             # 메시지 가져오기
-            batch = consumer.poll(timeout_ms=200) # 200ms 대기 후, 없으면 빈 배치 반환
             if not batch:
                 # 일정 시간 동안 새 레코드가 없으면 종료
                 if time.time() - idle_since > 3:
@@ -88,12 +68,10 @@ def kafka_crash_consume(bootstrap, topic, group_id, work_ms, crash_after=None):
             for tp, records in batch.items():
                 for rec in records:
                     # 1건 처리
-                    do_work_ms(work_ms)
-                    processed += 1
 
                     # ★ 레코드 '중간'에도 크래시 검사
-                    if crash_after and (time.time() - t0) >= crash_after:
-                        print(f"[kafka-crash] CRASH NOW at processed={processed} "
+                    if  and  >= :
+                        print(f"[kafka-crash] CRASH NOW at processed={} "
                               f"(current batch NOT committed)")
                         os._exit(1)  # 커밋 전에 죽어서, 현재 배치는 재시작 시 다시 읽힘
 
